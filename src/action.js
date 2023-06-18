@@ -10,7 +10,7 @@ async function getBundletoolInfo(tag) {
     const version = (tag && tag !== "latest") ? `tags/${tag}` : "latest";
     const url = `https://api.github.com/repos/google/bundletool/releases/${version}`;
     
-    const http = new httpm.HttpClient("bundletool-action");
+    const http = new httpm.HttpClient("bundletool-action-apk");
     const response = await http.getJson(url);
 
     if (response.statusCode !== 200) {
@@ -36,10 +36,6 @@ async function run() {
         }
         // parameters passed to the plugin
         const AAB_FILE = core.getInput("aabFile");
-        const BASE64_KEYSTORE = core.getInput("base64Keystore");
-        const KEYSTORE_PASSWORD = core.getInput("keystorePassword");
-        const KEYSTORE_ALIAS = core.getInput("keystoreAlias");
-        const KEY_PASSWORD = core.getInput("keyPassword");
         const BUNDLETOOL_VERSION = core.getInput("bundletoolVersion");
 
         const bundleToolPath = `${process.env.HOME}/bundletool`;
@@ -67,26 +63,14 @@ async function run() {
 
         await io.which("bundletool.jar", true);
 
-        const signingKey = "signingKey.jks";
-
-        fs.writeFileSync(signingKey, BASE64_KEYSTORE, "base64", function(err) {
-            if (err) {
-                core.info(`Please check the key ${err}`);
-            } else {
-                core.info("KeyStore File Created");
-            }
-        });
-
         var extension = path.extname(AAB_FILE);
         var filename = path.basename(AAB_FILE, extension);
 
-        await exec.exec(`java -jar ${bundleToolFile} build-apks --bundle=${AAB_FILE} --output=${filename}.apks --ks=${signingKey} --ks-pass=pass:${KEYSTORE_PASSWORD} --ks-key-alias=${KEYSTORE_ALIAS} --key-pass=pass:${KEY_PASSWORD} --mode=universal`);
+        await exec.exec(`java -jar ${bundleToolFile} build-apks --bundle=${AAB_FILE} --output=${filename}.apks`);
         await exec.exec(`mv ${filename}.apks ${filename}.zip`);
         await exec.exec(`unzip ${filename}.zip`);
         await exec.exec(`mv universal.apk ${filename}.apk`);
         core.setOutput("apkPath", `${filename}.apk`);
-
-        await exec.exec(`rm -rf ${signingKey}`);
     } catch (error) {
         core.setFailed(error.message);
     }

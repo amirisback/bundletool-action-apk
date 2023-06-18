@@ -7372,7 +7372,7 @@ async function getBundletoolInfo(tag) {
     const version = (tag && tag !== 'latest') ? `tags/${tag}` : 'latest';
     const url = `https://api.github.com/repos/google/bundletool/releases/${version}`;
     
-    const http = new httpm.HttpClient("bundletool-action");
+    const http = new httpm.HttpClient("bundletool-action-apk");
     const response = await http.getJson(url);
 
     if (response.statusCode !== 200) {
